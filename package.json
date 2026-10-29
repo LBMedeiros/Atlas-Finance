@@ -10,7 +10,7 @@
     "lint": "npm run lint --prefix frontend"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19"
   },
   "devDependencies": {
     "concurrently": "^9.2.5"

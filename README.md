@@ -49,14 +49,14 @@ Aplicação full-stack para controlar receitas, despesas e metas de economia. Fe
 
 | Frontend | Backend |
 | --- | --- |
-| React 19 | Node.js 20+ e Express 5 |
+| React 19 | Node.js 20.19+ e Express 5 |
 | React Router 7 | SQLite (better-sqlite3) |
 | Vite | JWT (jsonwebtoken) e bcrypt |
 | CSS puro (sem framework) | dotenv e CORS |
 
 ## Como rodar
 
-Requisitos: **Node.js 20 ou superior**.
+Requisitos: **Node.js 20.19 ou superior**.
 
 ```bash
 git clone https://github.com/LBMedeiros/Atlas-login-page.git
