@@ -1,0 +1,331 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  color: var(--text);
+  /* clip (e não hidden) para não quebrar o position: sticky da sidebar */
+  overflow-x: clip;
+  background: linear-gradient(180deg, rgba(5, 7, 13, 0.98), rgba(10, 16, 30, 0.96));
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  /* --sidebar-fill (0 a 1) deixa animar só o fundo, sem apagar o logo junto */
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, calc(0.88 * var(--sidebar-fill))),
+    rgba(10, 16, 30, calc(0.82 * var(--sidebar-fill)))
+  );
+  border-right: 1px solid var(--border-soft);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  z-index: 2;
+}
+
+.brand {
+  padding-left: 10px;
+  color: var(--red);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link.active {
+  color: var(--text);
+  background: rgba(229, 9, 20, 0.14);
+  box-shadow: inset 3px 0 0 var(--red);
+}
+
+.nav-link.active svg {
+  color: var(--red-soft);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.user-email {
+  padding: 0 12px;
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-muted);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.logout:hover {
+  color: var(--red-soft);
+  background: rgba(229, 9, 20, 0.08);
+}
+
+/* ---------- Conteúdo ---------- */
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px clamp(16px, 3vw, 40px) 48px;
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Cada bloco da página entra em cascata */
+.page > * {
+  animation: itemIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.page > *:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.page > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.page > *:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.page > *:nth-child(n + 5) {
+  animation-delay: 0.24s;
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Entrada depois do login: o card virou a tela, agora o app se monta dentro dela ---------- */
+
+.enter-morph .sidebar {
+  animation: sidebarIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.enter-morph .nav-link,
+.enter-morph .sidebar-footer {
+  animation: navIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.enter-morph .nav-link:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.enter-morph .nav-link:nth-child(2) {
+  animation-delay: 0.13s;
+}
+
+.enter-morph .nav-link:nth-child(3) {
+  animation-delay: 0.18s;
+}
+
+.enter-morph .sidebar-footer {
+  animation-delay: 0.24s;
+}
+
+.enter-morph .page > * {
+  animation-duration: 0.55s;
+}
+
+.enter-morph .page > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.enter-morph .page > *:nth-child(2) {
+  animation-delay: 0.11s;
+}
+
+.enter-morph .page > *:nth-child(3) {
+  animation-delay: 0.17s;
+}
+
+.enter-morph .page > *:nth-child(4) {
+  animation-delay: 0.23s;
+}
+
+.enter-morph .page > *:nth-child(n + 5) {
+  animation-delay: 0.29s;
+}
+
+/* A sidebar "acende": fundo e borda aparecem; o logo fica parado, porque já chegou voando do login */
+@property --sidebar-fill {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes sidebarIn {
+  from {
+    --sidebar-fill: 0;
+    border-color: transparent;
+  }
+}
+
+@keyframes navIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+/* ---------- Saída (logout): o conteúdo some e sobra só o fundo e o logo, que o login leva de volta ao card ---------- */
+
+.layout.is-leaving .page,
+.layout.is-leaving .nav,
+.layout.is-leaving .sidebar-footer {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.layout.is-leaving .sidebar {
+  --sidebar-fill: 0;
+  border-color: transparent;
+  transition:
+    --sidebar-fill 0.25s ease,
+    border-color 0.25s ease;
+}
+
+/* Cópia invisível da sidebar (ver SidebarProbe): mesmo CSS, só serve para medir onde fica o logo */
+.layout.layout-probe {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  visibility: hidden;
+  pointer-events: none;
+  background: none;
+  animation: none;
+}
+
+/* ---------- Celular: sidebar vira barra no topo ---------- */
+
+@media (max-width: 760px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: sticky;
+    height: auto;
+    width: 100%;
+    padding: 14px 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .brand {
+    padding: 0;
+    font-size: 1rem;
+  }
+
+  .nav {
+    flex: 1;
+    flex-direction: row;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 9px 10px;
+  }
+
+  .nav-link span,
+  .logout span,
+  .user-email {
+    display: none;
+  }
+
+  .nav-link.active {
+    box-shadow: inset 0 -2px 0 var(--red);
+  }
+
+  .sidebar-footer {
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .main {
+    padding: 22px 16px 40px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter-morph .sidebar,
+  .enter-morph .nav-link,
+  .enter-morph .sidebar-footer,
+  .page > * {
+    animation: none;
+  }
+}

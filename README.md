@@ -1,229 +1,148 @@
-# Atlas - Authentication System
+# Atlas — finanças pessoais
 
-A modern full-stack authentication application built with **React** and **Node.js/Express**. Features JWT-based authentication, secure password hashing with bcrypt, and smooth animated login transitions.
+Aplicação full-stack para controlar receitas, despesas e metas de economia. Feita com **React**, **Express** e **SQLite**, com autenticação JWT e uma transição animada em que o card de login se transforma no próprio app.
 
-## 🚀 Features
+<p align="center">
+  <img src="docs/transicao.gif" alt="Transição animada: o card de login cresce até virar o dashboard, e faz o caminho inverso ao sair" width="800">
+</p>
 
-- **User Registration**: Create new user accounts with email and password
-- **Secure Login**: JWT token-based authentication with bcrypt password hashing
-- **Protected Routes**: Dashboard accessible only with valid authentication token
-- **Animated Transitions**: Smooth login-to-dashboard transition animations
-- **CORS Enabled**: Frontend and backend communication with cross-origin support
-- **Environment Configuration**: Secure environment variable management with dotenv
+## Telas
 
-## 📁 Project Structure
+| Dashboard | Transações |
+| --- | --- |
+| ![Dashboard com saldo, indicadores do mês, gastos por categoria e metas](docs/dashboard.png) | ![Lista de transações agrupadas por dia com filtros](docs/transacoes.png) |
+
+| Metas | Nova transação |
+| --- | --- |
+| ![Metas com barra de progresso e valor mensal sugerido](docs/metas.png) | ![Modal de nova transação com valor, descrição, categoria e data](docs/nova-transacao.png) |
+
+| Login | Celular |
+| --- | --- |
+| ![Tela de login](docs/login.png) | <img src="docs/mobile-dashboard.png" alt="Dashboard no celular" width="190"> <img src="docs/mobile-metas.png" alt="Metas no celular" width="190"> |
+
+## Funcionalidades
+
+- **Dashboard:** saldo disponível, receitas e despesas do mês comparadas com o mês anterior, quanto da renda sobrou, gastos por categoria, progresso das metas e últimas transações. Dá para navegar entre os meses.
+- **Transações:** receitas e despesas com valor, descrição, categoria e data, agrupadas por dia e filtráveis por tipo.
+- **Metas:** objetivos de economia com depósito e resgate. Com prazo, o app calcula quanto guardar por mês para chegar lá.
+- **Contas:** cadastro e login com senha criptografada. Cada usuário só vê os próprios dados.
+- **Responsivo:** no celular a barra lateral vira uma barra no topo.
+- **Acessível:** formulários com rótulos, navegação por teclado (Enter envia, Esc fecha modais) e respeito à opção "reduzir movimento" do sistema.
+
+## Decisões técnicas
+
+- **Dinheiro em centavos inteiros.** Todos os valores são guardados como inteiros (R$ 12,34 → `1234`), evitando os erros de arredondamento de ponto flutuante (`0.1 + 0.2 !== 0.3`).
+- **Metas são dinheiro guardado, não gasto.** Depositar numa meta tira do saldo disponível, mas não entra nas despesas do mês. Assim os indicadores mostram o que foi realmente gasto.
+- **Operações atômicas no banco.** Um depósito atualiza a meta e registra a movimentação dentro da mesma transação do SQLite: ou as duas coisas acontecem, ou nenhuma.
+- **Regras garantidas também pelo banco.** Email único, valores positivos e chaves estrangeiras com `ON DELETE CASCADE` ficam no próprio schema, não só no código.
+- **Animação medida, não chutada.** A transição de login mede a posição real do card e do logo (inclusive de uma cópia invisível da barra lateral). Por isso funciona em qualquer tamanho de tela, e o fim é disparado pelo `transitionend` em vez de um tempo fixo, o que a mantém precisa mesmo em aparelhos lentos.
+- **Segurança:**
+  - Senhas com bcrypt.
+  - Tokens JWT com validade de 1 hora.
+  - O servidor não inicia sem um `JWT_SECRET` forte.
+  - Limite de tentativas no login e no cadastro.
+  - CORS restrito ao frontend.
+  - Erros internos nunca vazam para o navegador.
+  - Login com email inexistente e com senha errada dão a mesma mensagem.
+
+## Tecnologias
+
+| Frontend | Backend |
+| --- | --- |
+| React 19 | Node.js 20+ e Express 5 |
+| React Router 7 | SQLite (better-sqlite3) |
+| Vite | JWT (jsonwebtoken) e bcrypt |
+| CSS puro (sem framework) | dotenv e CORS |
+
+## Como rodar
+
+Requisitos: **Node.js 20 ou superior**.
+
+```bash
+git clone https://github.com/LBMedeiros/Atlas-login-page.git
+cd Atlas-login-page
+
+npm run setup   # instala as dependências e gera o backend/.env com um segredo aleatório
+npm run dev     # sobe a API e o frontend juntos
+```
+
+Abra **http://localhost:5173** e crie uma conta em "Criar conta".
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run setup` | Instala tudo e cria o `backend/.env` (só se ainda não existir) |
+| `npm run dev` | API em `localhost:3000` e frontend em `localhost:5173`, com recarga automática |
+| `npm run build` | Gera o frontend de produção em `frontend/dist` |
+| `npm start` | Sobe só a API (modo produção) |
+| `npm run lint` | Verifica o código do frontend |
+
+Os dados ficam no arquivo `backend/data/atlas.db`, que não vai para o git. Para fazer backup, basta copiar esse arquivo com o servidor parado.
+
+## Variáveis de ambiente
+
+`backend/.env` (gerado pelo `npm run setup`; modelo em [`backend/.env.example`](backend/.env.example)):
+
+| Variável | Obrigatória | Descrição |
+| --- | --- | --- |
+| `JWT_SECRET` | Sim | Segredo que assina os tokens (mínimo 32 caracteres) |
+| `PORT` | Não | Porta da API (padrão `3000`) |
+| `CORS_ORIGIN` | Não | Endereço(s) do frontend autorizados, separados por vírgula (padrão `http://localhost:5173`) |
+| `DB_PATH` | Não | Caminho do banco SQLite (padrão `backend/data/atlas.db`) |
+
+`frontend/.env` (opcional; modelo em [`frontend/.env.example`](frontend/.env.example)):
+
+| Variável | Descrição |
+| --- | --- |
+| `VITE_API_URL` | Endereço da API (padrão `http://localhost:3000`) |
+
+## API
+
+Rotas em `/api` exigem o cabeçalho `Authorization: Bearer <token>`. Valores sempre em centavos.
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `POST` | `/auth/register` | Cria uma conta (`email`, `password`) |
+| `POST` | `/auth/login` | Retorna o `token` |
+| `GET` | `/api/summary?month=AAAA-MM` | Resumo do dashboard |
+| `GET` | `/api/transactions?month=AAAA-MM` | Lista as transações do mês |
+| `POST` | `/api/transactions` | Cria (`type`, `amount`, `description`, `category`, `date`) |
+| `DELETE` | `/api/transactions/:id` | Exclui |
+| `GET` | `/api/goals` | Lista as metas |
+| `POST` | `/api/goals` | Cria (`name`, `target`, `deadline` opcional) |
+| `POST` | `/api/goals/:id/move` | Deposita ou resgata (`kind`: `deposit` ou `withdraw`, `amount`) |
+| `DELETE` | `/api/goals/:id` | Exclui (o valor guardado volta para o saldo) |
+| `GET` | `/api/categories` | Categorias de receita e despesa |
+| `GET` | `/health` | Verifica se a API está no ar |
+
+## Estrutura
 
 ```
-tela-login/
-├── backend/                 # Express.js API server
-│   ├── server.js           # Main server file
+├── backend/
+│   ├── server.js            # Express: CORS, limites, rotas e tratamento de erros
+│   ├── db.js                # Conexão e schema do SQLite
 │   ├── routes/
-│   │   └── auth.js         # Authentication routes (login, register, dashboard)
+│   │   ├── auth.js          # Cadastro e login
+│   │   └── finance.js       # Transações, metas e resumo
 │   ├── middleware/
-│   │   └── auth.js         # JWT verification middleware
-│   ├── package.json
-│   └── node_modules/
-│
-├── frontend/               # React + Vite application
-│   ├── src/
-│   │   ├── main.jsx        # Entry point
-│   │   ├── App.jsx         # Main app component
-│   │   ├── pages/
-│   │   │   ├── Login.jsx   # Login page with animations
-│   │   │   └── Dashboard.jsx # Protected dashboard page
-│   │   └── assets/
-│   ├── vite.config.js
-│   ├── eslint.config.js
-│   ├── package.json
-│   └── index.html
-│
-├── .gitignore              # Git ignore rules
-└── README.md
+│   │   ├── auth.js          # Validação do JWT
+│   │   └── rateLimit.js     # Limite de tentativas por IP
+│   └── scripts/setup-env.js # Gera o .env com segredo aleatório
+├── frontend/
+│   └── src/
+│       ├── pages/           # Login, Dashboard, Transações e Metas
+│       ├── components/      # Layout, modal, formulários e listas
+│       ├── api.js           # Cliente da API
+│       └── format.js        # Moeda, datas e meses em pt-BR
+└── docs/                    # Imagens deste README
 ```
 
-## 🛠️ Tech Stack
+## Próximos passos
 
-### Backend
+- Testes automatizados (API e interface)
+- Deploy com link público e conta de demonstração
+- Categorização automática das transações a partir da descrição
+- Exportar transações para CSV
 
-- **Express.js** - Web framework
-- **JWT (jsonwebtoken)** - Token-based authentication
-- **bcrypt** - Password hashing
-- **CORS** - Cross-origin resource sharing
-- **dotenv** - Environment variable management
-- **nodemon** - Development server auto-reload
+## Autor
 
-### Frontend
-
-- **React 19** - UI library
-- **React Router DOM** - Client-side routing
-- **Vite** - Build tool and dev server
-- **ESLint** - Code quality
-
-## 📋 Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-
-## ⚙️ Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd tela-login
-```
-
-### 2. Install Backend Dependencies
-
-```bash
-cd backend
-npm install
-```
-
-### 3. Install Frontend Dependencies
-
-```bash
-cd frontend
-npm install
-```
-
-## 🚀 Running the Application
-
-### Start the Backend Server
-
-```bash
-cd backend
-npm run dev
-```
-
-The server will run on `http://localhost:3000`
-
-### Start the Frontend Development Server
-
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will run on `http://localhost:5173` (or another port if 5173 is in use)
-
-## 📝 Environment Variables
-
-Create a `.env` file in the backend directory:
-
-```env
-# Example .env file
-JWT_SECRET=your-secret-key-here
-PORT=3000
-```
-
-## 🔐 API Endpoints
-
-### Authentication Routes
-
-#### Register a new user
-
-```
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-```
-
-#### Login
-
-```
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "securepassword"
-}
-
-Response:
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-#### Access Protected Dashboard
-
-```
-GET /auth/dashboard
-Authorization: Bearer <token>
-```
-
-## 🎨 Features Explained
-
-### Login Flow
-
-1. User enters email and password on the login page
-2. Credentials are sent to the backend for validation
-3. If valid, a JWT token is generated and returned
-4. Token is stored in localStorage for future requests
-5. Smooth animation transitions to the dashboard
-6. Dashboard displays personalized welcome message
-
-### Security
-
-- Passwords are hashed using bcrypt with salt rounds of 10
-- JWT tokens expire after 1 hour
-- Token verification middleware protects routes
-- CORS is configured for controlled cross-origin access
-
-## 🧪 Testing
-
-To test the application:
-
-1. **Register**: Go to the login page and register with a new email
-2. **Login**: Use the registered credentials to log in
-3. **Dashboard**: After successful login, you'll be redirected to the dashboard
-4. **Token Verification**: The dashboard verifies your JWT token on each access
-
-## 📦 Build for Production
-
-### Frontend Build
-
-```bash
-cd frontend
-npm run build
-```
-
-This creates an optimized production build in the `dist/` directory.
-
-### Backend
-
-The backend can be deployed directly with `npm install` and `npm run dev` or using production process managers like PM2.
-
-## 🐛 Troubleshooting
-
-- **Port 3000 already in use**: Change the port in `backend/server.js`
-- **CORS errors**: Ensure frontend is running on the correct URL in `Login.jsx`
-- **Token not saving**: Check if localStorage is enabled in your browser
-- **Login not working**: Verify backend is running and accessible
-
-## 📝 Future Enhancements
-
-- Add database integration (MongoDB, PostgreSQL)
-- Implement refresh tokens
-- Add user profile management
-- Password reset functionality
-- Email verification
-- Two-factor authentication
-- Dark mode toggle
-
-## 📄 License
-
-ISC License
-
-## 👤 Author
-
-Created by Lucas Medeiros.
-
----
-
-**Happy Coding!** 🚀
+Feito por **Lucas Medeiros** · [GitHub](https://github.com/LBMedeiros)

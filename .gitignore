@@ -44,3 +44,6 @@ Thumbs.db
 # Development
 .next/
 .nuxt/
+
+# Banco de dados local (usuários e dados financeiros)
+backend/data/
