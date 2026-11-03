@@ -59,8 +59,8 @@ Aplicação full-stack para controlar receitas, despesas e metas de economia. Fe
 Requisitos: **Node.js 20.19 ou superior**.
 
 ```bash
-git clone https://github.com/LBMedeiros/Atlas-login-page.git
-cd Atlas-login-page
+git clone https://github.com/LBMedeiros/Atlas-Finance.git
+cd Atlas-Finance
 
 npm run setup   # instala as dependências e gera o backend/.env com um segredo aleatório
 npm run dev     # sobe a API e o frontend juntos
